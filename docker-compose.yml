@@ -1,0 +1,14 @@
+services:
+  turnstile-client:
+    build: .
+    container_name: turnstile-client
+    environment:
+      - API_KEY=b46f6752-da76-4995-96e7-ec007365ef8f
+      - BASE_URL=https://api.sendmoregetbeta.com/v2/turnstiles
+      - URL_LOCAL=http://192.168.1.193
+      - USERNAME=admin
+      - PASSWORD=Adamanta
+    volumes:
+      - ./app:/app
+    devices:
+      - "/dev/video0:/dev/video0"
