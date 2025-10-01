@@ -1,22 +1,19 @@
 import os
-import cv2
 import requests
-from pyzbar.pyzbar import decode
 from requests.auth import HTTPDigestAuth
 from xml.etree import ElementTree as ET
 from dotenv import load_dotenv
 load_dotenv()
 
-
 # 🔹 Variables de entorno
-API_KEY = os.getenv("API_KEY")
-BASE_URL = os.getenv("BASE_URL")
-URL_LOCAL = os.getenv("URL_LOCAL")
-USERNAME = os.getenv("USERNAME")
-PASSWORD = os.getenv("PASSWORD")
+
+API_KEY = 'b8bfc4ca-7d3a-41e2-b94a-8b1b36130701'
+BASE_URL = 'https://api.sendmoregetbeta.com/v2/turnstiles'
+URL_LOCAL = 'http://192.168.1.229'
+USERNAME = 'admin'
+PASSWORD ='Adamanta2024'
 
 HEADERS = {"Authorization": API_KEY, "Content-Type": "application/json"}
-
 
 # 🔓 Función para abrir el torniquete vía ISAPI (Hikvision)
 def open_turnstile():
@@ -49,7 +46,7 @@ def open_turnstile():
         print("⛔ Error al conectar con el torniquete:", str(e))
         return False
 
-
+# 🔹 Check-in API
 def check_in(unique_code):
     url = f"{BASE_URL}/checkIn?uniqueCode={unique_code}"
     try:
@@ -59,7 +56,7 @@ def check_in(unique_code):
         print("⛔ Error en check_in:", str(e))
         return {}
 
-
+# 🔹 Verificar disponibilidad
 def check_available(unique_code, serial_number="abc123", access_dir=0):
     url = f"{BASE_URL}/checkAvailable"
     payload = {
@@ -84,7 +81,7 @@ def check_available(unique_code, serial_number="abc123", access_dir=0):
         print("⛔ Error en check_available:", str(e))
         return {}
 
-
+# 🔹 Confirmar consumo
 def do_consume(guid):
     url = f"{BASE_URL}/doConsume"
     payload = {"guid": guid}
@@ -95,44 +92,23 @@ def do_consume(guid):
         print("⛔ Error en do_consume:", str(e))
         return {}
 
-
-# 🔹 Escanear QR desde cámara
-def scan_qr_from_camera():
-    cap = cv2.VideoCapture(0)  # 0 = cámara por defecto
-    unique_code = None
-
-    print("📷 Escanea el QR con la cámara. Presiona 'q' para salir.")
-
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            print("⛔ No se pudo acceder a la cámara")
-            break
-
-        codes = decode(frame)
-        for code in codes:
-            unique_code = code.data.decode("utf-8")
-            print(f"✅ QR detectado: {unique_code}")
-            cap.release()
-            cv2.destroyAllWindows()
+# 🔹 Leer QR desde lector USB
+def scan_qr_from_keyboard():
+    try:
+        print("⌨️ Esperando lectura de QR desde lector USB (presiona Ctrl+C para salir)...")
+        unique_code = input("📥 Escanea el QR aquí: ").strip()
+        if unique_code:
+            print(f"✅ QR leído: {unique_code}")
             return unique_code
-
-        cv2.imshow("Escáner QR - Presiona 'q' para salir", frame)
-
-        # salir con tecla "q"
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
+    except KeyboardInterrupt:
+        print("\n⛔ Cancelado por el usuario.")
     return None
-
 
 # 🔹 Flujo principal
 if __name__ == "__main__":
-    print("=== Test Turnstile API con QR desde cámara ===")
+    print("=== Test Turnstile API con lector QR USB ===")
 
-    unique_code = scan_qr_from_camera()
+    unique_code = scan_qr_from_keyboard()
     if not unique_code:
         exit()
 
